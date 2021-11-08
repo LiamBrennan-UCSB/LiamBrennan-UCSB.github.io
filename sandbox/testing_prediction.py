@@ -5,7 +5,7 @@ import urllib
 import time 
 
 ## download data from last six months ##
-data = yf.download('GME','2021-05-02','2021-11-02') 
+data = yf.download('IO','2021-05-02','2021-11-02') 
 
 ## extract closing data ##
 closing_data = data.Close
