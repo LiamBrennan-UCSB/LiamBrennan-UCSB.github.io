@@ -100,6 +100,8 @@ def IterativeApproximation(dset, test_vector, column_list, start_v=0, second_v=1
 		else:
 			newclass_column.append(0)
 
+	print(newclass_column)
+
 	# add the new column to the dataset and turn it back into a DataFrame
 	use_column_list.append(newclass_column)
 	new_dataframe = pandas.DataFrame(use_column_list)
@@ -112,6 +114,7 @@ def IterativeApproximation(dset, test_vector, column_list, start_v=0, second_v=1
 
 	# does the net think the output will be larger or smaller than the bound?
 	# if the output is larger (1) make the V value the new lower bound
+	sign = 1
 	if output == 1:
 		boundaries = [v, boundaries[1]]
 		sign = 1

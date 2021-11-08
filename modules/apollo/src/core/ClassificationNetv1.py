@@ -74,7 +74,7 @@ def getValidation(dset, prediction_column_index, v_size):
 def spotCheckAlgorithms(CC_train, CC_validation, PC_train, PC_validation, scoring = 'accuracy'):
 	''' checks which algorithm is most effective on the dataset '''
 	models = []
-	models.append(('LR', 	LogisticRegression()))
+	# models.append(('LR', 	LogisticRegression()))
 	models.append(('LDA', 	LinearDiscriminantAnalysis()))
 	models.append(('KNN', 	KNeighborsClassifier()))
 	models.append(('CART', 	DecisionTreeClassifier()))

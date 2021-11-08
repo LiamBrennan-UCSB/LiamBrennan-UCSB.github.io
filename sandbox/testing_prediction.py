@@ -5,7 +5,7 @@ import urllib
 import time 
 
 ## download data from last six months ##
-data = yf.download('IO','2021-05-02','2021-11-02') 
+data = yf.download('GME','2021-05-02','2021-11-02') 
 
 ## extract closing data ##
 closing_data = data.Close
@@ -15,7 +15,7 @@ for d_idx, c_d in enumerate(closing_data):
 
     try:
         data_vec = [closing_data[d] for d in range(d_idx, d_idx+5)]
-        
+
         if 1.05*closing_data[d_idx+4] < closing_data[d_idx+5]:
             data_vec.append(1.)
         else:
@@ -69,12 +69,12 @@ print(symbols)
 
 t0 = time.time()
 
-PERCENT = 100
+PERCENT = 20
 output = []
 
 for symbol in symbols:
 
-    data = yf.download(symbol,'2021-05-02','2021-11-02') 
+    data = yf.download(symbol,'2015-05-02','2021-11-05') 
 
     ## extract closing data ##
     closing_data = data.Close
@@ -84,7 +84,7 @@ for symbol in symbols:
 
         try:
             data_vec = [closing_data[d] for d in range(d_idx, d_idx+5)]
-            
+
             if (1+float(PERCENT)/100.)*closing_data[d_idx+4] < closing_data[d_idx+5]:
                 data_vec.append(1.)
             else:
@@ -115,11 +115,11 @@ for symbol in symbols:
     output.append([symbol, num_dir, rate, look_no_look])
 
 
-with open('five_dollar_stock_prediction_11-03-2021_6mo-100percent.csv', "w") as op:
+with open(f'five_dollar_stock_prediction_11-05-2021_6years-{PERCENT}percent.csv', "w") as op:
     for line in output:
         op.write(f"{line[0]}:\t {line[1]},\t {line[2]}, {line[3]}\n")
 # df = pd.Series(output)
 # df.to_csv('five_dollar_stock_prediction_11-03-2021.csv')
 
 
-print(f">>>This took {time.time()-t0} seconds to run.<<<")
+print(f">>>This took {time.time()-t0} seconds to run.<<<") 

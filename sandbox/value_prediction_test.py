@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import urllib
 import time 
+import sys
 
 ## load in ML algorithm ##
 import sys
@@ -12,11 +13,11 @@ import DataFormatterv1
 import ClassificationNetv1
 import IterativeApproximation
 
-STOCK = "AAPL"
+STOCK = sys.argv[1].upper()
 
 #------------- predict next day value -------------#
 ## download data from last six months ##
-data = yf.download('IO','2021-05-02','2021-11-02') 
+data = yf.download(STOCK,'2015-05-02','2021-11-05') 
 
 ## extract closing data ##
 closing_data = data.Close
@@ -36,6 +37,8 @@ for d_idx, c_d in enumerate(closing_data):
 a = np.asarray(training_data)
 np.savetxt("test_iterative_aapl_training.csv", a, delimiter=",")
 
+results = np.transpose(training_data)[-1]
+
 
 ## load in dataset ##
 dataset = DataFormatterv1.Format("./test_iterative_aapl_training.csv", names=['a', 'b', 'c', 'd', 'e', 'f'])
@@ -49,5 +52,6 @@ list_of_columns = [
     list(dataset.f.tolist())
 ]
 
-predict = [1.789999961853027344e+00,1.789999961853027344e+00,1.730000019073486328e+00,1.629999995231628418e+00,1.529999971389770508e+00] ## expected value 1.720000028610229492e+00
-(bounds, history) = IterativeApproximation.IterativeApproximation(dataset, predict, list_of_columns, start_v = np.mean(predict), second_v=1.5*np.mean(predict), num_iter=25, show_graph=False)
+predict = training_data[-1][0:-1]
+## expected value 5.530000209808349609e+00
+(bounds, history) = IterativeApproximation.IterativeApproximation(dataset, predict, list_of_columns, start_v = np.mean(results), second_v=1.5*np.mean(results), num_iter=25, show_graph=False)
