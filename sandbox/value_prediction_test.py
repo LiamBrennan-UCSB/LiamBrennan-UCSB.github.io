@@ -30,7 +30,7 @@ for d_idx, c_d in enumerate(closing_data):
         
 
         training_data.append(data_vec)
-    except IndexError:
+    except IndexError
         break
 
 ## save data for read-in ##
