@@ -77,12 +77,14 @@ pre_dict = { ## key is ticker, assoc. w/ prev close, predict price, lower bound,
 for idx, ticker_unformatted in enumerate(recommendations['ticker+pred']):
 
     recommendation = recommendations['recommendation'][idx]
-    if recommendation.strip() == 'IGNORE':
+    if recommendation.strip() == 'IGNORE' or recommendations.confidence[idx]<0.8:
         continue
 
     ticker = ticker_unformatted.split()[0].strip(':')
 
     ticker_dict = {'ticker':ticker}
+
+    ticker_dict['confidence'] = recommendations['confidence'][idx]
 
     ## get previous close ##
     ticker_yahoo = yf.Ticker(ticker)

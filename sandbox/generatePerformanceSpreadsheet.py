@@ -19,7 +19,7 @@ predictions = pd.read_csv(_fpath)
 
 print(predictions.ticker)
 
-actual_closing, percent_error, delta_mu = [], [], []
+actual_closing, percent_error, delta_mu, simulated_shares, num_shares, returns = [], [], [], [], [], []
 for t_idx, ticker in enumerate(predictions.ticker):
 
     ## get today's closing ##
@@ -36,11 +36,32 @@ for t_idx, ticker in enumerate(predictions.ticker):
 
     delta_mu.append(d_mu)
 
+    ## compute simulated number of shares ##
+    simulated_share_frac = predictions.confidence[t_idx] / np.sum(predictions.confidence)
+
+    simulated_shares.append(simulated_share_frac)
+
+    ## compute number of shares based on $100 ##
+    money_to_spend = simulated_share_frac*100.
+    num_shares_to_buy = np.floor(money_to_spend/predictions.prev_close[t_idx])
+    if num_shares_to_buy < 1:
+        num_shares_to_buy = 0
+
+    num_shares.append(num_shares_to_buy)
+
+
+    ## compute returns ##
+    returns.append(num_shares_to_buy*d_mu)
+
+
 ## add new columns ##
 performance = copy.deepcopy(predictions)
 performance['actual_closing'] = actual_closing
 performance['percent_error'] = percent_error
 performance['delta_mu'] = delta_mu
+performance['simulated_shares'] = simulated_shares
+performance['num_shares'] = num_shares
+performance['returns'] = returns
 
 ## save csv ##
 performance.to_csv(f"performance_spreadsheet{_fpath.split('spreadsheet')[-1]}")
