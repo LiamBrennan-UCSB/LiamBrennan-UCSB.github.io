@@ -16,8 +16,10 @@ import ClassificationNetv1
 import IterativeApproximation
 
 TODAY = datetime.datetime.now()
+d = datetime.timedelta(days=1)
+TODAY = TODAY - d
 INTERVAL_DAYS = int(sys.argv[1])
-PERCENT = int(sys.argv[2])
+PERCENT = float(sys.argv[2])
 
 def predict_value(STOCK, interval_days=INTERVAL_DAYS):
     #------------- predict next day value -------------#

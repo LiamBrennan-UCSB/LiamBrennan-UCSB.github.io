@@ -13,31 +13,19 @@ import DataFormatterv1
 import ClassificationNetv1
 
 
-## scrape list of best stocks under $5 ##
-header= {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) '
-    'AppleWebKit/537.11 (KHTML, like Gecko) '
-    'Chrome/23.0.1271.64 Safari/537.11',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-    'Accept-Encoding': 'none',
-    'Accept-Language': 'en-US,en;q=0.8',
-    'Connection': 'keep-alive'}
+with open("all_symbols_under5.txt", "r") as sym_file:
+    lines = sym_file.readlines()
 
-url = "https://stocksunder5.org/nyse-stocks-under-5/"
-req = urllib.request.Request(url=url, headers=header)
-page = urllib.request.urlopen(req).read()
-table = pd.read_html(page)
-
-symbols = table[5].Symbol
-symbols = [symbol.split()[0] for symbol in symbols]
+symbols = [line.strip() for line in lines]
 print(symbols)
-
 
 t0 = time.time()
 
 INTERVAL_DAYS = int(sys.argv[1])
-PERCENT = int(sys.argv[2])
+PERCENT = float(sys.argv[2])
 TODAY = datetime.datetime.now()
+d = datetime.timedelta(days=1)
+TODAY -= d
 output = []
 
 for symbol in symbols:
@@ -68,9 +56,17 @@ for symbol in symbols:
     print(len(a))
     np.savetxt("data_cache.csv", a, delimiter=",")#, fmt='%1.4f %1.4f %1.4f %1.4f %1.4f %i')
 
+    try:
+        dataset = DataFormatterv1.Format("./data_cache.csv")
+    except pd.errors.EmptyDataError:
+        print("Couldn't find stock. Ignoring.")
+        continue
 
-    dataset = DataFormatterv1.Format("./data_cache.csv")
-    rate, result, _ = ClassificationNetv1.Predict(dataset, 5, closing_data[-6:-1], return_model=True)
+    try:
+        rate, result, _ = ClassificationNetv1.Predict(dataset, 5, closing_data[-6:-1], return_model=True)
+    except ValueError:
+        print(f"stock {symbol} may be too young. ignoring.")
+        continue
 
     if int(result) == 0: 
         direction = 'not go up at least'

@@ -1,0 +1,2 @@
+,ticker,confidence,prev_close,prediction,actual_closing,percent_error,delta_mu,simulated_shares,num_shares,returns
+0,UGP,0.928105408541983,2.380000114440918,2.4000001409903358,2.380000114440918,0.8403372095684107,0.0,1.0,42.0,0.0

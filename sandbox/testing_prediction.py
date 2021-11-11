@@ -69,8 +69,10 @@ print(symbols)
 
 t0 = time.time()
 
-PERCENT = 20
+PERCENT = 10
 output = []
+
+symbols.append('GME')
 
 for symbol in symbols:
 
@@ -115,9 +117,9 @@ for symbol in symbols:
     output.append([symbol, num_dir, rate, look_no_look])
 
 
-with open(f'five_dollar_stock_prediction_11-05-2021_6years-{PERCENT}percent.csv', "w") as op:
-    for line in output:
-        op.write(f"{line[0]}:\t {line[1]},\t {line[2]}, {line[3]}\n")
+# with open(f'five_dollar_stock_prediction_11-05-2021_6years-{PERCENT}percent.csv', "w") as op:
+#     for line in output:
+#         op.write(f"{line[0]}:\t {line[1]},\t {line[2]}, {line[3]}\n")
 # df = pd.Series(output)
 # df.to_csv('five_dollar_stock_prediction_11-03-2021.csv')
 

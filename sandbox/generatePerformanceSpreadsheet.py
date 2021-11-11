@@ -11,13 +11,13 @@ import copy
 TODAY = datetime.datetime.now()
 INTERVAL_DAYS = int(sys.argv[1])
 PREV_DATE = TODAY - datetime.timedelta(days=1)
-PERCENT = int(sys.argv[2])
+PERCENT = float(sys.argv[2])
 
 #------------- load csv -------------#
 _fpath = f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(PREV_DATE, "%Y-%m-%d")}_{PERCENT}.csv'
 predictions = pd.read_csv(_fpath)
 
-print(predictions.ticker)
+print(predictions)
 
 actual_closing, percent_error, delta_mu, simulated_shares, num_shares, returns = [], [], [], [], [], []
 for t_idx, ticker in enumerate(predictions.ticker):
