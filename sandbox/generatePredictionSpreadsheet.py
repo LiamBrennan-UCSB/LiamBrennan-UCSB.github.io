@@ -16,7 +16,7 @@ import ClassificationNetv1
 import IterativeApproximation
 
 TODAY = datetime.datetime.now()
-d = datetime.timedelta(days=1)
+d = datetime.timedelta(days=0)
 TODAY = TODAY - d
 INTERVAL_DAYS = int(sys.argv[1])
 PERCENT = float(sys.argv[2])
@@ -68,6 +68,9 @@ def predict_value(STOCK, interval_days=INTERVAL_DAYS):
     return bounds, history
 
 
+
+t0 = time.time()
+
 #------------- load in recommendation csv -------------#
 _fpath = f'five_dollar_stock_prediction_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{INTERVAL_DAYS}-{PERCENT}percent.csv'
 recommendations = DataFormatterv1.Format(_fpath, names=["ticker+pred", "confidence", "recommendation"])
@@ -79,7 +82,7 @@ pre_dict = { ## key is ticker, assoc. w/ prev close, predict price, lower bound,
 for idx, ticker_unformatted in enumerate(recommendations['ticker+pred']):
 
     recommendation = recommendations['recommendation'][idx]
-    if recommendation.strip() == 'IGNORE' or recommendations.confidence[idx]<0.8:
+    if recommendation.strip() == 'IGNORE' or recommendations.confidence[idx]<0.80:
         continue
 
     ticker = ticker_unformatted.split()[0].strip(':')
@@ -107,3 +110,6 @@ with open(f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(TODAY
     dict_writer = csv.DictWriter(output_file, keys)
     dict_writer.writeheader()
     dict_writer.writerows([pre_dict[key] for key in list(pre_dict.keys())])
+
+
+print(f"Total time to complete: {time.time()-t0}")

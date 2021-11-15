@@ -8,14 +8,15 @@ import datetime
 import csv
 import copy 
 
-TODAY = datetime.datetime.now()
+TODAY = datetime.datetime.now() - datetime.timedelta(days=0)
 INTERVAL_DAYS = int(sys.argv[1])
 PREV_DATE = TODAY - datetime.timedelta(days=1)
 PERCENT = float(sys.argv[2])
 
 #------------- load csv -------------#
-_fpath = f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(PREV_DATE, "%Y-%m-%d")}_{PERCENT}.csv'
-predictions = pd.read_csv(_fpath)
+_fpath = f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{PERCENT}_gt87.csv'
+print(_fpath)
+predictions = pd.read_csv(_fpath, encoding='ISO-8859–1')
 
 print(predictions)
 
@@ -42,7 +43,7 @@ for t_idx, ticker in enumerate(predictions.ticker):
     simulated_shares.append(simulated_share_frac)
 
     ## compute number of shares based on $100 ##
-    money_to_spend = simulated_share_frac*100.
+    money_to_spend = simulated_share_frac*5000.
     num_shares_to_buy = np.floor(money_to_spend/predictions.prev_close[t_idx])
     if num_shares_to_buy < 1:
         num_shares_to_buy = 0
@@ -65,4 +66,6 @@ performance['returns'] = returns
 
 ## save csv ##
 performance.to_csv(f"performance_spreadsheet{_fpath.split('spreadsheet')[-1]}")
+with open("performance_files.txt", "a") as pf:
+    pf.write(f"performance_spreadsheet{_fpath.split('spreadsheet')[-1]}\n")
 
