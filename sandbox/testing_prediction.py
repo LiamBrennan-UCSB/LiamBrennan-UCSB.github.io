@@ -5,7 +5,7 @@ import urllib
 import time 
 
 ## download data from last six months ##
-data = yf.download('GME','2021-05-02','2021-11-02') 
+data = yf.download('HIPO','2021-05-02','2021-11-02') 
 
 ## extract closing data ##
 closing_data = data.Close
@@ -16,7 +16,7 @@ for d_idx, c_d in enumerate(closing_data):
     try:
         data_vec = [closing_data[d] for d in range(d_idx, d_idx+5)]
 
-        if 1.05*closing_data[d_idx+4] < closing_data[d_idx+5]:
+        if 1.01*closing_data[d_idx+4] < closing_data[d_idx+5]:
             data_vec.append(1.)
         else:
             data_vec.append(0.)
@@ -42,8 +42,8 @@ import ClassificationNetv1
 dataset = DataFormatterv1.Format("./test_aapl_training.csv")
 
 ## test ##
-## 1.420000000000000000e+02,1.432899932861328125e+02,1.428999938964843750e+02,1.428099975585937500e+02,1.415099945068359375e+02,1.409100036621093750e+02
-print (ClassificationNetv1.Predict(dataset, 5, [1.420000000000000000e+02,1.432899932861328125e+02,1.428999938964843750e+02,1.428099975585937500e+02,1.415099945068359375e+02]))
+## 4.989999771118164062e+00,4.900000095367431641e+00,4.719999790191650391e+00,4.449999809265136719e+00,4.539999961853027344e+00,1.000000000000000000e+00
+print (ClassificationNetv1.Predict(dataset, 5, [4.989999771118164062e+00,4.900000095367431641e+00,4.719999790191650391e+00,4.449999809265136719e+00,4.539999961853027344e+00]))
 
 
 
