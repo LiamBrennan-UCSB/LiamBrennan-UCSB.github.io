@@ -72,20 +72,21 @@ def predict_value(STOCK, interval_days=INTERVAL_DAYS):
 t0 = time.time()
 
 #------------- load in recommendation csv -------------#
-_fpath = f'five_dollar_stock_prediction_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{INTERVAL_DAYS}-{PERCENT}percent.csv'
-recommendations = DataFormatterv1.Format(_fpath, names=["ticker+pred", "confidence", "recommendation"])
+_fpath = f'five_dollar_stock_prediction_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{INTERVAL_DAYS}-{PERCENT}.csv'
+recommendations = DataFormatterv1.Format(_fpath, names=["ticker", "pred", "confidence", "recommendation"])
 
 
 #------------- compile prediction dictionary -------------#
 pre_dict = { ## key is ticker, assoc. w/ prev close, predict price, lower bound, upper bound, actual close, percent error, delta mu (money made or lost per share)
 }
-for idx, ticker_unformatted in enumerate(recommendations['ticker+pred']):
+for idx, ticker_unformatted in enumerate(recommendations['ticker']):
 
     recommendation = recommendations['recommendation'][idx]
     if recommendation.strip() == 'IGNORE' or recommendations.confidence[idx]<0.80:
         continue
 
-    ticker = ticker_unformatted.split()[0].strip(':')
+    print(ticker_unformatted)
+    ticker = ticker_unformatted[0:-2]#.strip('-').rstrip(':').strip(' ')#split()[0].strip(':')
 
     ticker_dict = {'ticker':ticker}
 

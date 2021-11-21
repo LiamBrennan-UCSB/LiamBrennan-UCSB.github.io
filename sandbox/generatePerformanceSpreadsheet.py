@@ -14,7 +14,7 @@ PREV_DATE = TODAY - datetime.timedelta(days=1)
 PERCENT = float(sys.argv[2])
 
 #------------- load csv -------------#
-_fpath = f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{PERCENT}_gt87.csv'
+_fpath = f'prediction_spreadsheet_{INTERVAL_DAYS}_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{PERCENT}.csv'
 print(_fpath)
 predictions = pd.read_csv(_fpath, encoding='ISO-8859–1')
 
@@ -43,7 +43,7 @@ for t_idx, ticker in enumerate(predictions.ticker):
     simulated_shares.append(simulated_share_frac)
 
     ## compute number of shares based on $100 ##
-    money_to_spend = simulated_share_frac*5000.
+    money_to_spend = simulated_share_frac*4600.
     num_shares_to_buy = np.floor(money_to_spend/predictions.prev_close[t_idx])
     if num_shares_to_buy < 1:
         num_shares_to_buy = 0

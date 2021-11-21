@@ -7,8 +7,8 @@ import datetime
 t0 = time.time()
 
 ####### PAPER TRADING #######
-api_key = 'PK0S2F7ES6FFEIZHOP88'
-api_secret = 'eXevXhZ0gwKqDVXjdgW8Hac1m36wAX1LoIXT3Rb1'
+api_key = 'PKYELPJALFATEFWKNUCY'
+api_secret = 'h0mGK6oeiTI9nF643X7MwTJz6R3XBimj79XEqsu2'
 base_url = 'https://paper-api.alpaca.markets'
 
 api = tradeapi.REST(key_id= api_key, secret_key=api_secret, base_url=base_url)
@@ -38,12 +38,12 @@ for _fpath in _fpaths:
 
 
 #------------- sell shares -------------#
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=2)
 YESTERDAY = YESTERDAY.replace(hour=1, minute=00, second=00)
 
 ## grab shares bought yesterday ##
 orders = api.list_orders('all', after=YESTERDAY)
-buy_orders = [order for order in orders if order.side=='sell']
+buy_orders = [order for order in orders if order.side=='buy']
 buy_orders_tickers = [order.symbol for order in buy_orders]
 buy_orders_qty = [order.filled_qty for order in buy_orders]
 
@@ -56,13 +56,14 @@ for t_idx, ticker in enumerate(buy_orders_tickers):
 
     print(f"Selling {qty} shares of {ticker}.")
 
-    # api.submit_order(
-    #     symbol=ticker, # Replace with the ticker of the stock you want to buy
-    #     qty=qty,
-    #     side='sell',
-    #     type='market', 
-    #     time_in_force='gtc' # Good 'til cancelled
-    #     )
+    
+    api.submit_order(
+        symbol=ticker, # Replace with the ticker of the stock you want to buy
+        qty=qty,
+        side='sell',
+        type='market', 
+        time_in_force='gtc' # Good 'til cancelled
+        )
 
 #------------- buy shares -------------#
 account = api.get_account()
@@ -81,13 +82,13 @@ for ticker in list(ticker_share_dict.keys()):
 
     print(f"Buying {qty} shares of {ticker}.")
 
-    # api.submit_order(
-    #     symbol=ticker, # Replace with the ticker of the stock you want to buy
-    #     qty=qty,
-    #     side='buy',
-    #     type='market', 
-    #     time_in_force='gtc' # Good 'til cancelled
-    # )    
+    api.submit_order(
+        symbol=ticker, # Replace with the ticker of the stock you want to buy
+        qty=qty,
+        side='buy',
+        type='market', 
+        time_in_force='gtc' # Good 'til cancelled
+    )    
 
 
 print(f"Trading bot took {(time.time()-t0)/60.} minutes.")
