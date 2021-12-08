@@ -67,11 +67,22 @@ for symbol in symbols:
 
     a = np.asarray(training_data)
     print(len(a))
+
+    print(np.transpose(training_data)[-1])
+    print(np.sum(np.transpose(training_data)[-1])/len(np.transpose(training_data)[-1]))
+    if np.sum(np.transpose(training_data)[-1])/len(np.transpose(training_data)[-1]) < 0.2 or np.sum(np.transpose(training_data)[-1]) < 20:
+        print(f"Ignoring {symbol} because in our testing it did not go up enough.")
+        continue
+    # input()
+
     np.savetxt("data_cache.csv", a, delimiter=",")#, fmt='%1.4f %1.4f %1.4f %1.4f %1.4f %i')
 
 
     dataset = DataFormatterv1.Format("./data_cache.csv")
-    rate, result, _ = ClassificationNetv1.Predict(dataset, 5, closing_data[-6:-1], return_model=True)
+    try:
+        rate, result, probability, _ = ClassificationNetv1.Predict(dataset, 5, closing_data[-6:-1], return_model=True, return_probability=True)
+    except np.AxisError:
+        print("Couldn't find enough cases. Skipping.")
 
     if int(result) == 0: 
         direction = 'not go up at least'
@@ -83,7 +94,7 @@ for symbol in symbols:
         look_no_look = 'LOOK'
     print(f"Tomorrow the {symbol} stock will {direction} {PERCENT}%, with {rate*100}% certainty.")
 
-    output.append([symbol, num_dir, rate, look_no_look])
+    output.append([symbol, num_dir, probability[0][1], look_no_look])
 
 
 with open(f'five_dollar_stock_prediction_{datetime.date.strftime(TODAY, "%Y-%m-%d")}_{INTERVAL_DAYS}-{PERCENT}.csv', "w") as op:

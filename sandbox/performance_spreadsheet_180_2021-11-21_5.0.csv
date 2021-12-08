@@ -1,0 +1,2 @@
+,ticker,confidence,prev_close,prediction,actual_closing,percent_error,delta_mu,simulated_shares,num_shares,returns
+0,HIPO,1.0,3.880000114440918,3.880176563814582,3.5350000858306885,9.764539451284932,-0.3450000286102295,1.0,1185.0,-408.82503390312195

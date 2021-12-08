@@ -7,8 +7,8 @@ import datetime
 t0 = time.time()
 
 ####### PAPER TRADING #######
-api_key = 'PKYELPJALFATEFWKNUCY'
-api_secret = 'h0mGK6oeiTI9nF643X7MwTJz6R3XBimj79XEqsu2'
+api_key = 'PKXQ2EJUCK102RZDHN0B'
+api_secret = 'ch1dQIEE8OGU1Nhw6KgglJ1yv7nCQKO5UrvPbbTM'
 base_url = 'https://paper-api.alpaca.markets'
 
 api = tradeapi.REST(key_id= api_key, secret_key=api_secret, base_url=base_url)
@@ -16,7 +16,7 @@ api = tradeapi.REST(key_id= api_key, secret_key=api_secret, base_url=base_url)
 #------------- run all scripts -------------#
 os.system("rm performance_files.txt")
 os.system("touch performance_files.txt")
-for percent in [1, 2, 5]:
+for percent in [1]:
     os.system(f"python run_all_scripts.py 180 {percent}")
 
 
@@ -38,7 +38,7 @@ for _fpath in _fpaths:
 
 
 #------------- sell shares -------------#
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=2)
+YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=3)
 YESTERDAY = YESTERDAY.replace(hour=1, minute=00, second=00)
 
 ## grab shares bought yesterday ##
@@ -57,15 +57,19 @@ for t_idx, ticker in enumerate(buy_orders_tickers):
     print(f"Selling {qty} shares of {ticker}.")
 
     
-    api.submit_order(
-        symbol=ticker, # Replace with the ticker of the stock you want to buy
-        qty=qty,
-        side='sell',
-        type='market', 
-        time_in_force='gtc' # Good 'til cancelled
-        )
+    try:
+        api.submit_order(
+            symbol=ticker, # Replace with the ticker of the stock you want to buy
+            qty=qty,
+            side='sell',
+            type='market', 
+            time_in_force='gtc' # Good 'til cancelled
+            )
+    except:
+        print(r"Couldn't sell {qty} shares of {ticker}.")
 
 #------------- buy shares -------------#
+
 account = api.get_account()
 for ticker in list(ticker_share_dict.keys()): 
 
@@ -79,6 +83,8 @@ for ticker in list(ticker_share_dict.keys()):
         continue
 
     qty = max(ticker_share_dict[ticker])
+
+
 
     print(f"Buying {qty} shares of {ticker}.")
 

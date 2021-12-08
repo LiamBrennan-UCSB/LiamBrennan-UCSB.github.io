@@ -105,10 +105,10 @@ def spotCheckAlgorithms(CC_train, CC_validation, PC_train, PC_validation, scorin
 		print( "{0} model is right {1} percent of the time.".format(name, rate*100))
 	return rate, best_model, name
 
-def spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_model=False):
+def spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_model=False, return_probability=False):
 	''' generates the neural net and thinks about the data '''
 
-	# generates the neural network based on the best mdoel
+	# generates the neural network based on the best model
 	neurNet = best_model
 
 	# trains the neural network
@@ -121,12 +121,15 @@ def spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_
 	prediction_set = numpy.array(prediction_set).reshape(1,-1)
 
 	# think
+	if return_probability:
+		predictions = neurNet.predict_proba(prediction_set)
+		return predictions
 	predictions = neurNet.predict(prediction_set)
 
 	return predictions
 
 
-def Predict(dset, prediction_column_index, prediction_set, val_size=0.2, return_model=False):
+def Predict(dset, prediction_column_index, prediction_set, val_size=0.2, return_model=False, return_probability=False):
 	'''	coalesces all of the other functions into one thing; 
 		will return prediction
 	'''
@@ -137,9 +140,8 @@ def Predict(dset, prediction_column_index, prediction_set, val_size=0.2, return_
 	(rate, best_model, name) = spotCheckAlgorithms(CC_train, CC_validation, PC_train, PC_validation)
 
 	if return_model:
-		return (rate, spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_model=False), name)
+		return (rate, spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_model=False, return_probability=False), spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_model=False, return_probability=return_probability), name)
 
 	# think 
-	result = spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train)
+	result = spawnNeuralNet(rate, best_model, prediction_set, CC_train, PC_train, return_probability=return_probability)
 	return result
-	

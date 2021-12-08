@@ -1,0 +1,2 @@
+,ticker,confidence,prev_close,prediction,actual_closing,percent_error,delta_mu,simulated_shares,num_shares,returns
+0,SUNL,0.8,4.295000076293945,4.6012891648730125,4.295000076293945,7.131294135932982,0.0,1.0,3376.0,0.0
