@@ -5,17 +5,31 @@ import urllib
 import time 
 import matplotlib.pyplot as plt
 import scipy.stats
+import datetime
+import random
+
+import access_offline_data as access
 
 
-def probability_curve_generator(ticker, show=False):
+
+def probability_curve_generator(ticker, date, show=False):
 
     ## download data from last six months ##
-    data = yf.download(ticker,'2021-05-02','2021-12-16') 
+    start_date = datetime.datetime.strptime(date, '%Y-%m-%d')-datetime.timedelta(days=180)
+    start_date = f"{start_date.year}-{str(start_date.month).zfill(2)}-{str(start_date.day).zfill(2)}"
+    # print(start_date)
+    # data = yf.download(ticker, start_date ,date) 
 
-    ## extract closing data ##
-    closing_data = data.Close
+    # ## extract closing data ##
+    # closing_data = data.Close
+
+    print ("[{0}][start_date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), start_date))
+    print ("[{0}][date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), date))
+
+    closing_data = access.access_range(ticker, start_date, date, return_list=True)
 
     LENGTH = len(closing_data)
+    print ("[{0}][LENGTH: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), LENGTH))
 
     days_ago = []
     probs = []
@@ -24,7 +38,7 @@ def probability_curve_generator(ticker, show=False):
         days_ago.append(-i)
 
         ## grab timespan ##
-        timespan = closing_data[-i:-1]
+        timespan = np.array(closing_data[-i:-1], dtype=np.float32)
 
         ## roll and subtract ##
         deltas = timespan - np.roll(timespan, 1)
@@ -41,11 +55,12 @@ def probability_curve_generator(ticker, show=False):
 
 
 
-    try:
-        z = np.polyfit(days_ago, probs, 1)
-    except TypeError:
-        print("Symbol not found.")
-        return -10000, -10000, -10000
+    # try:
+    #     z = np.polyfit(days_ago, probs, 1)
+    # except TypeError:
+    #     print("Symbol not found.")
+    #     return -10000, -10000, -10000
+    z = np.polyfit(days_ago, probs, 1)
 
     p = np.poly1d(z)
 
@@ -83,9 +98,35 @@ def probability_curve_generator(ticker, show=False):
 # symbols = [symbol.split()[0] for symbol in symbols]
 
 
-def main():
+def get_recommended_symbols(date):
 
     with open("all_symbols_under5.txt", "r") as sym_f:
+        lines = sym_f.readlines()
+    symbols = [line.strip('\n') for line in lines]
+    # print(symbols)
+
+
+    output = []
+    rec_symbols = []
+    for symbol in symbols:
+        print(symbol)
+
+        try:
+            slope, chi, pred = probability_curve_generator(symbol, date)
+        except TypeError:
+            print("Not using this symbol.")
+            continue
+        if slope < 0: continue
+        if chi < 0.2: continue
+        if pred < 0.55: continue
+        rec_symbols.append(symbol)
+        output.append(f"{symbol}, {slope}, {chi}, {pred}\n")
+
+    return rec_symbols
+
+def main():
+
+    with open("test_symbols .txt", "r") as sym_f:
         lines = sym_f.readlines()
     symbols = [line.strip('\n') for line in lines]
     print(symbols)
@@ -95,7 +136,7 @@ def main():
     for symbol in symbols:
 
         slope, chi, pred = probability_curve_generator(symbol)
-        if slope < 0: continue
+        if slope < 0.4: continue
         if chi < 0.2: continue
         if pred < 0.5: continue
         output.append(f"{symbol}, {slope}, {chi}, {pred}\n")
