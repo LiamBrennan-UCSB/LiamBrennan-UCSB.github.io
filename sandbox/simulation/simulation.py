@@ -144,6 +144,7 @@ for day in range(DAYS):
     ## update equity ##
     update_equity(delta, date=datetime.datetime.strptime(current_date, '%Y-%m-%d'))
     stocks_picked_vs_dates.append([datetime.datetime.strptime(current_date, '%Y-%m-%d'), len(stocks)])
+    input()
     # input()
 
     # if delta < 0.95:
