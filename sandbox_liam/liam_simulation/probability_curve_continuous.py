@@ -135,7 +135,7 @@ def main():
     output = []
     for symbol in symbols:
 
-        slope, chi, pred = probability_curve_generator(symbol)
+        slope, chi, pred = probability_curve_generator(symbol, '2021-12-20')
         if slope < 0.4: continue
         if chi < 0.2: continue
         if pred < 0.5: continue

@@ -19,7 +19,7 @@ for ticker in TICKERS:
   current_price = si.get_live_price(ticker)
   money_fraction = total_money / len(TICKERS)
 
-  qty = int(0.98*(money_fraction / current_price))
+  qty = int(0.98*(money_fraction / current _price))
 
   api.submit_order(
     symbol=ticker, # Replace with the ticker of the stock you want to buy
