@@ -10,7 +10,7 @@ import datetime
 t0 = time.time()
 
 START_DATE = '2020-01-01'
-END_DATE = '2021-12-28'
+END_DATE = '2021-12-29'
 
 _DATA_DIR = './offline_data/'
 
@@ -22,7 +22,7 @@ symbols.append('GME')
 print(symbols)
 
 ## download data and save to file ##
-for s, symbol in enumerate(symbols):
+for s, symbol in enumerate(symbols[symbols.index('DFFN'):]):
 
     # if s%80 == 0:
     #     print("Sleeping to trick Yahoo.")
@@ -30,7 +30,7 @@ for s, symbol in enumerate(symbols):
 
     print(f"Downloading {symbol}.")
     ## download ##
-    data = yf.download(symbol, start=START_DATE, end=END_DATE)
+    data = yf.download(symbol, start=START_DATE, end=END_DATE, threads= False)
     closing_data = data.Close
 
     try:
