@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import scipy.stats
 import datetime
 import random
+import os
 
 import access_offline_data as access
 
@@ -103,6 +104,7 @@ def get_recommended_symbols(date):
     with open("all_symbols_under5.txt", "r") as sym_f:
         lines = sym_f.readlines()
     symbols = [line.strip('\n') for line in lines]
+    # symbols = [line.strip('\n') for line in lines if os.path.getsize(f"./offline_data/{line.rstrip()}.txt") > 0]
     # print(symbols)
 
 
@@ -116,9 +118,9 @@ def get_recommended_symbols(date):
         except TypeError:
             print("Not using this symbol.")
             continue
-        if slope < 0: continue
+        if slope < 0.6: continue
         if chi < 0.2: continue
-        if pred < 0.55: continue
+        if pred < 0.6: continue
         rec_symbols.append(symbol)
         output.append(f"{symbol}, {slope}, {chi}, {pred}\n")
 
@@ -136,9 +138,9 @@ def main():
     for symbol in symbols:
 
         slope, chi, pred = probability_curve_generator(symbol)
-        if slope < 0.4: continue
-        if chi < 0.2: continue
-        if pred < 0.5: continue
+        if slope < 0.1: continue
+        if chi < 0.01: continue
+        if pred < 0.6: continue
         output.append(f"{symbol}, {slope}, {chi}, {pred}\n")
 
     with open("output-dec-17.csv", "w") as op_f:

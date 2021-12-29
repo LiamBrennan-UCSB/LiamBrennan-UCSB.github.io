@@ -8,13 +8,17 @@ def access(ticker, date):
 
     return dict_from_csv[date]
 
-def access_range(ticker, start_date, end_date, return_list=False):
+def access_range(ticker, start_date, end_date, return_list=False, download=False):
 
     dict_from_csv = pd.read_csv(f'{_DATA_DIR}/{ticker}.txt', header=None, index_col=0, squeeze=True).to_dict()
 
     range_dict = {}
     record = False
     closings = []
+
+    if list(dict_from_csv.keys())[0] > start_date: 
+        return range_dict
+
     for key in list(dict_from_csv.keys()):
         if key < start_date and record is False: 
             continue
