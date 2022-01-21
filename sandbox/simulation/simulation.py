@@ -37,9 +37,9 @@ class bcolors:
 
 
 START_MONEY = 1000 ## dollars
-START_DATE = '2020-02-01'
+START_DATE = '2021-07-01'
 START_DATE_OBJ = datetime.datetime.strptime(START_DATE, '%Y-%m-%d')
-DAYS = 300
+DAYS = 200
 
 CURRENT_EQUITY = START_MONEY
 
@@ -128,7 +128,7 @@ for day in range(DAYS):
 
     ## set current dat  e ##
     current_date = START_DATE_OBJ + datetime.timedelta(days=day)
-    current_date = f"{current_date.year}-{current_date.month}-{current_date.day}"
+    current_date = f"{current_date.year}-{str(current_date.month).zfill(2)}-{str(current_date.day).zfill(2)}"
 
     delta = calculate_delta_sum(current_date, ['GME'])
     if delta == 'SKIP':
@@ -138,6 +138,8 @@ for day in range(DAYS):
     ## pick stocks ##
     stocks = stock_picker(current_date)
     stocks = [stock for stock in stocks if stock not in previous_day_stocks]
+    print(current_date, stocks)
+    # input()
     previous_day_stocks = stocks
     # print(stocks)
 
@@ -158,7 +160,7 @@ for day in range(DAYS):
 
     ## update equity ##
     update_equity(delta, date=datetime.datetime.strptime(current_date, '%Y-%m-%d'))
-    stocks_picked_vs_dates.append([datetime.datetime.strptime(current_date, '%Y-%m-%d'), len(stocks)])
+    stocks_picked_vs_dates.append([datetime.datetime.strptime(current_date, '%Y-%m-%d'), stocks])
     print(stocks)
     print(current_date)
     # input()

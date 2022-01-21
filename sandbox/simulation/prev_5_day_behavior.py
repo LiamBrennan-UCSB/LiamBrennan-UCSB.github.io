@@ -18,6 +18,8 @@ def recommend_stock(ticker, date):
     start_date = datetime.datetime.strptime(date, '%Y-%m-%d')-datetime.timedelta(days=5)
     start_date = f"{start_date.year}-{str(start_date.month).zfill(2)}-{str(start_date.day).zfill(2)}"
 
+    print("DATES:", start_date, date)
+
     # date = datetime.datetime.strptime(date, '%Y-%m-%d')-datetime.timedelta(days=1)
     # date = f"{date.year}-{str(date.month).zfill(2)}-{str(date.day).zfill(2)}"
     # print(start_date)
@@ -29,11 +31,12 @@ def recommend_stock(ticker, date):
     print ("[{0}][start_date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), start_date))
     print ("[{0}][date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), date))
 
-    closing_data = access.access_range(ticker, start_date, date, return_list=True)#[-5:-1]
+    closing_data = access.access_range(ticker, start_date, date, return_list=True)#[-6:-1]
 
     LENGTH = len(closing_data)
+    # print("LENGTH", LENGTH)
     # print(closing_data)
-    if LENGTH <= 2: return -1000000
+    # if LENGTH <= 2: return -1000000
     print ("[{0}][LENGTH: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), LENGTH))
 
     deltas = []
@@ -70,6 +73,9 @@ def get_recommended_symbols(date):
         except FileNotFoundError:
             print("Not using this symbol.")
             deltas.append(-1e10)
+            continue
+
+        except:
             continue
 
         
