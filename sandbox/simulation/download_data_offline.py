@@ -20,7 +20,7 @@ def get_current_price(symbol):
 t0 = time.time()
 
 START_DATE = '2021-06-12'
-END_DATE = '2022-01-20'
+END_DATE = '2022-01-21'
 
 TODAY = True
 

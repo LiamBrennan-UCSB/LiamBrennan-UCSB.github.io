@@ -15,7 +15,7 @@ import access_offline_data as access
 def recommend_stock(ticker, date):
 
     ## download data from last six months ##
-    start_date = datetime.datetime.strptime(date, '%Y-%m-%d')-datetime.timedelta(days=5)
+    start_date = datetime.datetime.strptime(date, '%Y-%m-%d')-datetime.timedelta(days=10)
     start_date = f"{start_date.year}-{str(start_date.month).zfill(2)}-{str(start_date.day).zfill(2)}"
 
     print("DATES:", start_date, date)
@@ -31,7 +31,7 @@ def recommend_stock(ticker, date):
     print ("[{0}][start_date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), start_date))
     print ("[{0}][date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), date))
 
-    closing_data = access.access_range(ticker, start_date, date, return_list=True)#[-6:-1]
+    closing_data = access.access_range(ticker, start_date, date, return_list=True)[-6:-1]
 
     LENGTH = len(closing_data)
     # print("LENGTH", LENGTH)
