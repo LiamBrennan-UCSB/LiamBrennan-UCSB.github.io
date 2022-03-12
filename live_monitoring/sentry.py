@@ -17,6 +17,7 @@ yag = yagmail.SMTP(FROM_EMAIL, FROM_PASS)
 
 RECIPIENTS_EMAILS = [
     "3239079063@vtext.com",
+    "8052801032@txt.att.net"
     # "liamb7144@gmail.com"
 ]
 

@@ -10,6 +10,7 @@ import access_offline_data as access
 
 import probability_curve_continuous as pcc
 import prev_5_day_behavior as p5
+import apollo_prediction as ml
 
 class bcolors:
     HEADER = '\033[95m'
@@ -36,10 +37,10 @@ class bcolors:
 
 
 
-START_MONEY = 1000 ## dollars
-START_DATE = '2021-07-01'
+START_MONEY = 10000 ## dollars
+START_DATE = '2021-02-04'
 START_DATE_OBJ = datetime.datetime.strptime(START_DATE, '%Y-%m-%d')
-DAYS = 200
+DAYS = 2000
 
 CURRENT_EQUITY = START_MONEY
 
@@ -53,7 +54,7 @@ def stock_picker(date):
     print(f"Picking stocks for date {date}.")
 
     # return pcc.get_recommended_symbols(date)
-    return p5.get_recommended_symbols(date)
+    return ml.get_recommended_symbols(date, tickers=p5.get_recommended_symbols(date))
 
 
 def calculate_delta_single_ticker(date, ticker, percent=True):
@@ -120,11 +121,11 @@ gains = 0
 VOLATILE_WARNING = 0
 TWO_DAY_VOLATILE_WARNING = 0
 shutdown_activated = 0
-for day in range(DAYS):
+for day in range(0, DAYS, 30):
 
-    if VOLATILE_WARNING > 0:
-        VOLATILE_WARNING -= 1
-        continue
+    # if VOLATILE_WARNING > 0:
+    #     VOLATILE_WARNING -= 1
+    #     continue
 
     ## set current dat  e ##
     current_date = START_DATE_OBJ + datetime.timedelta(days=day)
@@ -137,7 +138,7 @@ for day in range(DAYS):
     
     ## pick stocks ##
     stocks = stock_picker(current_date)
-    stocks = [stock for stock in stocks if stock not in previous_day_stocks]
+    # stocks = [stock for stock in stocks if stock not in previous_day_stocks]
     print(current_date, stocks)
     # input()
     previous_day_stocks = stocks
@@ -154,9 +155,9 @@ for day in range(DAYS):
     if delta == 'SKIP':
         continue
 
-    if delta > 1.5:
-        print(stocks)
-        input()
+    # if delta > 1.5:
+    #     print(stocks)
+    #     input()
 
     ## update equity ##
     update_equity(delta, date=datetime.datetime.strptime(current_date, '%Y-%m-%d'))
@@ -172,11 +173,11 @@ for day in range(DAYS):
     #     print(previous_day_stocks)
     #     print(delta)
     #     input()
-    # if delta < 0.95:
+    # if delta < 0.98:
     #     shutdown_activated+=1
     #     VOLATILE_WARNING = 3
 
-    # if delta < 0.97:
+    # if delta < 1.0:
     #     TWO_DAY_VOLATILE_WARNING += 1
     #     if TWO_DAY_VOLATILE_WARNING == 2:
     #         VOLATILE_WARNING = 3
