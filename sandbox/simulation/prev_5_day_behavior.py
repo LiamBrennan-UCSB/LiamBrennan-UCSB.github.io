@@ -31,7 +31,7 @@ def recommend_stock(ticker, date):
     print ("[{0}][start_date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), start_date))
     print ("[{0}][date: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), date))
 
-    closing_data = access.access_range(ticker, start_date, date, return_list=True)[-30:-1]
+    closing_data = access.access_range(ticker, start_date, date, return_list=True)[-10:-1]
 
     LENGTH = len(closing_data)
     # print("LENGTH", LENGTH)

@@ -17,7 +17,6 @@ yag = yagmail.SMTP(FROM_EMAIL, FROM_PASS)
 
 RECIPIENTS_EMAILS = [
     "3239079063@vtext.com",
-    "8052801032@txt.att.net"
     # "liamb7144@gmail.com"
 ]
 
@@ -135,7 +134,7 @@ try:
 
 
         #------------- FREQUENT BEHAVIOR -------------#
-        DELAY = 10 ## seconds
+        DELAY = 300 ## seconds
 
         # if MARKET == "OPEN":
         time.sleep(DELAY)
@@ -152,8 +151,18 @@ try:
             max_price = np.max(asset_day_behavior[ticker]['p'])
 
             ## is current price less than 3% of max? ##
-            if current_price < 1.01*max_price:
-                print("Sending sell alert.")
+            if current_price < 0.97*max_price:
+                print("Sending sell 50 percent alert.")
+                send_sell_alert(ticker, asset_day_behavior[ticker]['p'])
+
+
+            elif current_price < 0.98*max_price:
+                print("Sending sell 20 percent alert.")
+                send_sell_alert(ticker, asset_day_behavior[ticker]['p'])
+
+
+            elif current_price < 0.99*max_price:
+                print("Sending sell optional 10 percent alert.")
                 send_sell_alert(ticker, asset_day_behavior[ticker]['p'])
 
 
