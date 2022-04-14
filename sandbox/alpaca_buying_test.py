@@ -18,3 +18,18 @@ api.submit_order(
   type='market', 
   time_in_force='gtc' # Good 'til cancelled
 )
+
+## matplotlib settings ##
+import matplotlib.pyplot as plt
+plt.style.use('classic')
+import matplotlib as mpl
+import matplotlib.font_manager as font_manager
+mpl.rcParams['font.family']='serif'
+cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
+mpl.rcParams['font.serif']=cmfont.get_name()
+mpl.rcParams['mathtext.fontset']='cm'
+mpl.rcParams['axes.unicode_minus']=False
+colors = ['green', 'orange', 'cyan', 'darkred']
+plt.rcParams.update({'font.size': 10}) 
+
+
