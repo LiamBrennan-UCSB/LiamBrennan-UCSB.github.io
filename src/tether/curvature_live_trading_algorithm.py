@@ -6,6 +6,7 @@ import numpy as np
 import time
 import requests
 import pick_possible_coin_alpaca as pcp
+import series_analysis as sa
 
 import matplotlib.pyplot as plt
 
@@ -46,7 +47,7 @@ api = tradeapi.REST(alpaca_api_key, alpaca_api_secret, api_version='v2')
 account = api.get_account()
 print(account)
 
-CASH_FRAC = 0.1
+CASH_FRAC = 0.3
 COINS_OWNED = 0
 
 COIN = None
@@ -115,7 +116,7 @@ def change_coin():
 
 
 
-def buy_or_sell_or_hold(series, show=False):
+def buy_or_sell_or_hold(series, show=False, window=None):
 
     '''
     THREE MARKERS
@@ -128,8 +129,12 @@ def buy_or_sell_or_hold(series, show=False):
     DECISION = 'HOLD'
     vertex_in_range = False
 
-    print(series)
-    fit = np.polyfit(range(len(series)), series, 2)
+    if window is None:
+        window = len(series)
+
+    # print(series)
+    fit_series = series#[-1*window:-1]
+    fit = np.polyfit(range(len(fit_series)), fit_series, 2)
     f = np.poly1d(fit)
 
     a, b, c = fit
@@ -199,9 +204,18 @@ def process_message(msg):
             except requests.exceptions.HTTPError:
                 print("Something weird happened--I couldn't connect to Alpaca to get activities.")
 
+        ## calculate fit window ##
+        # window = int(sa.estimate_periodicity(history, show=False))
+        # print(window)
 
-        DECISION, vertex, f = buy_or_sell_or_hold(history, show=False)
-        if DECISION == 'BUY' and BUY and np.mean(history[-3:-1]) < 1.25*np.min(history):
+        DECISION, vertex, f = buy_or_sell_or_hold(history, show=False)#, window=window)
+        min_hist = min(history)
+        max_hist = max(history)
+        perc_diff_min_max = (max_hist - min_hist)/min_hist
+        acceptable_range = (1.+1.+perc_diff_min_max)/2.
+        acceptable_range = (1.+acceptable_range)/2.
+        print(f"Acceptable range: {acceptable_range}")
+        if DECISION == 'BUY' and BUY and np.mean(history[-3:-1]) < acceptable_range*np.min(history):
             buy(coins=None, price=float(msg['p']))
             BUY = False
             SELL = True
@@ -210,17 +224,20 @@ def process_message(msg):
             sell(COINS_OWNED)
             SELL = False
             BUY = True
+            sys.exit(0)
             change_coin()
         elif SELL and np.mean(history[-5:-1]) > 1.01*BUY_PRICE:
             sell(COINS_OWNED)
             SELL = False
             BUY = True
+            sys.exit(0)
             change_coin()
         elif SELL and np.mean(history[-5:-1]) < 0.95*BUY_PRICE:
             print("Emergency sell--price went 5% below BUY.")
             sell(COINS_OWNED)
             SELL = False
             BUY = True
+            sys.exit(0)
             change_coin()
         else:
             print("Doing nothing")
@@ -236,9 +253,8 @@ def process_message(msg):
 
 
 
-
 change_coin()
-
+# COIN = 'DOGEUSD'
 
 bm = BinanceSocketManager(client)
 conn_key = bm.start_trade_socket(COIN+'T', process_message)

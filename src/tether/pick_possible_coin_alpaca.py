@@ -66,7 +66,7 @@ def get_price(coin):
 
     # splitstr_phrase ='''<span class="V53LMb" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" focusable="false" class=" NMm5M"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg></span>'''
     splitstr_phrase ='''"price"'''
-    price = float(html.split(splitstr_phrase)[1].split('''"p''')[0][2:-2])
+    price = float(html.split(splitstr_phrase)[1].split('''"p''')[0][2:-2].replace(',', ''))
 
     return price
 
