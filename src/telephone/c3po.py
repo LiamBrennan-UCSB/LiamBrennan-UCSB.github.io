@@ -11,7 +11,6 @@ import argparse
 import urllib
 import datetime
 import os
-import get_buy_sell_recommendation as gbsr
 
 #------------- grab command line arguments -------------#
 parser = argparse.ArgumentParser()
@@ -132,17 +131,6 @@ def process_message(msg):
         print(f"Time to sell: {(time.time() - buy_time) / 60.} minutes.")
         os.system("killall python3")
         os.system("killall python")
-    elif current_price < BUY_PRICE * 0.993:
-        recommendation = gbsr.get_recommendation(COIN)
-        if recommendation == 'sell':
-            sell(quantity)
-            print(f"Time to sell: {(time.time() - buy_time) / 60.} minutes.")
-            os.system("killall python3")
-            os.system("killall python")
-    elif current_price < BUY_PRICE * 0.982:
-        print("Stop-loss activated. Selling.")
-        sell(quantity)
-
 
 binance_api_key ="DvuDXaDBmVwrr7SxSbUME21PoYfBLwfxx2LfeIRlgxebtbTw3gw3jaM0veMzEJTU"
 binance_api_secret ="MMcpYWesOC4v5q7E91ot8SQjo3qYMCXzSw5sfMQ2T1b6srUWOpiNKDRTBH75Fnw7"
