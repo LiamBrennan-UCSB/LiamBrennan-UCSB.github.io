@@ -60,7 +60,7 @@ class bcolors:
 
 
 #------------- script settings -------------#
-TICKER          = 'BTC-USD'
+TICKER          = 'BAT-USD'
 SAMPLE_PERIOD   = 2 ## hours
 COMPARE_PERIOD  = '1mo'
 INTERVAL        = '5m'
@@ -210,9 +210,16 @@ def plot_best_fits(bf_idx, future_time_frac=1.0, return_stats=True, show=True):
     plt.axhline(np.max(history_future), c='green', alpha=0.5, ls='--')
     plt.text(0.05, np.max(history_future)*1.005, "Potential price", color='green')
 
+    twohour_price_actual = history_future[-1]*norm_hist + min_hist
+    print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
+
+    plt.axhline(history_future[-1], c='red', alpha=0.5, ls='--')
+    plt.text(0.05, np.max(history_future)*1.005, "Potential price", color='red')
+
     plt.plot(np.linspace(len(in_history), len(in_history)+5*len(history_future), len(history_future)), history_future, c='red', ls='--', alpha=0.5, label='future')
 
     perc_diff = (potential_price_actual-leave_price_actual)/leave_price_actual
+    perc_diff_worst = (twohour_price_actual-leave_price_actual)/leave_price_actual
 
     if show:
         plt.legend(frameon=False)
@@ -221,24 +228,25 @@ def plot_best_fits(bf_idx, future_time_frac=1.0, return_stats=True, show=True):
         # plt.show()
 
     if return_stats:
-        return chisq, leave_price_actual, potential_price_actual, perc_diff
+        return chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst
 
 
 
 #------------- plot best fits sections -------------#
 plt.clf(); plt.cla()
-good_chisqs, good_perc_diffs = [], []
+good_chisqs, good_perc_diffs, good_perc_diff_worsts = [], [], []
 for idx in list(chisq_dict.keys()):
 
-    chisq, leave_price_actual, potential_price_actual, perc_diff = plot_best_fits(idx, return_stats=True, show=True)
+    chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst = plot_best_fits(idx, return_stats=True, show=True)
 
     good_chisqs.append(chisq)
     good_perc_diffs.append(perc_diff)
+    good_perc_diff_worsts.append(perc_diff_worst)
 
 
+#------------- plot maximum potential -------------#
 estimate_returns = np.median(good_perc_diffs)
 
-estimate_returns /= len(good_chisqs)
 print ("[{0}][estimate_returns: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), estimate_returns))
 
 
@@ -249,6 +257,41 @@ plt.xlabel("$\chi^2$")
 plt.ylabel("Percent diff of potential price")
 plt.title(f"Percent change distribution (estimate returns: {estimate_returns})")
 # plt.show()
+pdf.savefig()
+
+#------------- plot histogram of good perc diff -------------#
+
+plt.clf(); plt.cla()
+plt.hist(good_perc_diffs, 10)
+plt.axvline(np.median(good_perc_diffs), color='black', ls='--', alpha=0.3)
+plt.axvline(np.median(good_perc_diffs)+np.std(good_perc_diffs), color='black', ls='--', alpha=0.3)
+plt.axvline(np.median(good_perc_diffs)-np.std(good_perc_diffs), color='black', ls='--', alpha=0.3)
+plt.xlabel("percent differences, potential")
+pdf.savefig()
+
+#------------- plot worst case -------------#
+estimate_returns_worst = np.median(good_perc_diff_worsts)
+
+print ("[{0}][estimate_returns_worst: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), estimate_returns_worst))
+
+
+plt.clf(); plt.cla()
+plt.scatter(good_chisqs, good_perc_diff_worsts)
+plt.axhline(0, color='black', ls='--', alpha=0.3)
+plt.xlabel("$\chi^2$")
+plt.ylabel("Percent diff of worst case price")
+plt.title(f"Percent change distribution (estimate worst returns: {estimate_returns_worst})")
+# plt.show()
+pdf.savefig()
+
+#------------- plot histogram of worst case perc diff -------------#
+
+plt.clf(); plt.cla()
+plt.hist(good_perc_diff_worsts, 10)
+plt.axvline(np.median(good_perc_diff_worsts), color='black', ls='--', alpha=0.3)
+plt.axvline(np.median(good_perc_diff_worsts)+np.std(good_perc_diff_worsts), color='black', ls='--', alpha=0.3)
+plt.axvline(np.median(good_perc_diff_worsts)-np.std(good_perc_diff_worsts), color='black', ls='--', alpha=0.3)
+plt.xlabel("percent differences, worst case")
 pdf.savefig()
 
 pdf.close()
