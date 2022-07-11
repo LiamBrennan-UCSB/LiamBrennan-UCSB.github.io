@@ -66,7 +66,7 @@ async def execute():
 
         return price
 
-    coin_price = await bbs.get_price(COIN)
+    coin_price, COIN = await bbs.get_price(COIN, return_symbol=True)
     print("Current price of coin: $", coin_price)
 
 
@@ -93,7 +93,7 @@ async def execute():
     time.sleep(5)
 
     #------------- get buy price -------------#
-    BUY_PRICE = coin_price
+    BUY_PRICE, quantity = await bbs.get_order(COIN)
 
     print ("[{0}][BUY_PRICE: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), BUY_PRICE))
     #------------- sell coin after pricepoint reached -------------#
@@ -122,34 +122,14 @@ async def execute():
 
         if current_price > (1.+GAIN) * BUY_PRICE or current_price < (1.+LOSS) * BUY_PRICE or time.time() - buy_time > 7200:
 
-            await sell(quantity-quantity*(0.001))
+            await sell(quantity)
             print(f"Time to sell: {(time.time() - buy_time) / 60.} minutes.")
+
             os.system("killall python3")
             os.system("killall python")
 
         time.sleep(1)
 
     await exchange.close()
-
-    # async def process_message(msg):
-
-    #     current_price = float(msg['p'])
-    #     print ("[{0}][current_price: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), current_price))
-    #     print(f"Percent above: {(current_price-BUY_PRICE)/BUY_PRICE}")
-
-    #     if current_price > (1.+GAIN) * BUY_PRICE or current_price < (1.+LOSS) * BUY_PRICE or time.time() - buy_time > 7200:
-    #         await sell(quantity)
-    #         print(f"Time to sell: {(time.time() - buy_time) / 60.} minutes.")
-    #         os.system("killall python3")
-    #         os.system("killall python")
-
-    # binance_api_key ="DvuDXaDBmVwrr7SxSbUME21PoYfBLwfxx2LfeIRlgxebtbTw3gw3jaM0veMzEJTU"
-    # binance_api_secret ="MMcpYWesOC4v5q7E91ot8SQjo3qYMCXzSw5sfMQ2T1b6srUWOpiNKDRTBH75Fnw7"
-    # client = Client(binance_api_key, binance_api_secret)
-
-    # bm = BinanceSocketManager(client)
-    # conn_key = bm.start_trade_socket(COIN+'T', await process_message)
-
-    # bm.start()
 
 asyncio.run(execute())

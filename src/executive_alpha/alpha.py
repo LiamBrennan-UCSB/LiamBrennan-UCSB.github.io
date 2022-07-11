@@ -176,7 +176,8 @@ def executive_alpha(ticker, decide=True):
         ## check chisq ##
         chisq = compare_sample_history(sample_close, history_comp, show=False, return_interp=False)
 
-        chisq_dict[idx] = chisq
+        if chisq > 1:
+            chisq_dict[idx] = chisq
 
         if len(chisq_dict.keys()) > 20:
             chisq_dict = remaining(chisq_dict)
@@ -398,7 +399,7 @@ def executive_alpha(ticker, decide=True):
         if projected_outcome < 0.008:
             BUY = False
 
-        if projected_outcome - np.std(projected_outcomes) < -0.01:
+        if projected_outcome - np.std(projected_outcomes) < -0.011:
             BUY = False
 
         if not BUY:
@@ -410,7 +411,7 @@ def executive_alpha(ticker, decide=True):
 
 def main():
 
-    print(executive_alpha('XMR', decide=True))
+    print(executive_alpha('ENS', decide=True))
 
 
 if __name__ == '__main__':
