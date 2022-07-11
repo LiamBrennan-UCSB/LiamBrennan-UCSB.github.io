@@ -69,7 +69,7 @@ if SAMPLE_PERIOD > 24:
     bcolors.failure("Sample period must be less than one day. Setting SAMPLE_PERIOD -> 24 (hours).")
 
 
-def executive_alpha(ticker):
+def executive_alpha(ticker, decide=True):
 
     TICKER = ticker + "-USD"
     pdf = PdfPages(f'{TICKER}_pattern_analysis.pdf')
@@ -190,7 +190,7 @@ def executive_alpha(ticker):
         plt.clf(); plt.cla()
 
         ## get chisq ##
-        history_comp = history_close[idx:idx+len(sample_close)]
+        history_comp = history_close[bf_idx:bf_idx+len(sample_close)]
         chisq, in_sample, in_history, min_hist, norm_hist = compare_sample_history(sample_close, history_comp, show=False)
 
         ## plot fit ##
@@ -204,7 +204,7 @@ def executive_alpha(ticker):
         print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
 
         ## plot future behavior ##
-        history_future = history_close[idx+int(future_time_frac*len(sample_close)):idx+2*int(future_time_frac*len(sample_close))]
+        history_future = history_close[bf_idx+int(future_time_frac*len(sample_close)):bf_idx+2*int(future_time_frac*len(sample_close))]
         history_future = (history_future-min_hist)/norm_hist + 0.001\
 
         potential_price_actual = np.max(history_future)*norm_hist + min_hist
@@ -238,6 +238,7 @@ def executive_alpha(ticker):
     #------------- plot best fits sections -------------#
     plt.clf(); plt.cla()
     good_chisqs, good_perc_diffs, good_perc_diff_worsts = [], [], []
+    projected_outcomes = []
     for idx in list(chisq_dict.keys()):
 
         chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst = plot_best_fits(idx, return_stats=True, show=True)
@@ -246,6 +247,80 @@ def executive_alpha(ticker):
         good_perc_diffs.append(perc_diff)
         good_perc_diff_worsts.append(perc_diff_worst)
 
+        if perc_diff > 0.005:
+            projected_outcomes.append(perc_diff)
+        else:
+            projected_outcomes.append(perc_diff_worst)
+
+    #------------- plot histogram of projected outcome -------------#
+
+    plt.clf(); plt.cla()
+    plt.hist(projected_outcomes, 10)
+    plt.axvline(np.median(projected_outcomes), color='black', ls='--', alpha=0.3)
+    plt.axvline(np.median(projected_outcomes)+np.std(projected_outcomes), color='black', ls='--', alpha=0.3)
+    plt.axvline(np.median(projected_outcomes)-np.std(projected_outcomes), color='black', ls='--', alpha=0.3)
+    plt.xlabel("Predicted percent diff")
+    plt.title(f"Projected outcomes; median={np.median(projected_outcomes)}")
+    pdf.savefig()    
+
+
+    projected_outcome = np.median(projected_outcomes)
+
+    def plot_best_fits_singleplot(bf_idx, future_time_frac=1.0, return_stats=False, save=True):
+
+        # plt.clf(); plt.cla()
+
+        ## get chisq ##
+        history_comp = history_close[bf_idx:bf_idx+len(sample_close)]
+        chisq, in_sample, in_history, min_hist, norm_hist = compare_sample_history(sample_close, history_comp, show=False)
+
+        ## plot fit ##
+        
+        plt.plot(in_history, c='red', alpha=0.1)
+
+
+        leave_price_actual = in_history[-1]*norm_hist + min_hist
+        print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
+
+        ## plot future behavior ##
+        history_future = history_close[bf_idx+int(future_time_frac*len(sample_close)):bf_idx+2*int(future_time_frac*len(sample_close))]
+        history_future = (history_future-min_hist)/norm_hist + 0.001
+
+        potential_price_actual = np.max(history_future)*norm_hist + min_hist
+        print ("[{0}][potential_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), potential_price_actual))
+
+        twohour_price_actual = history_future[-1]*norm_hist + min_hist
+        print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
+
+
+        plt.plot(np.linspace(len(in_history), len(in_history)+5*len(history_future), len(history_future)), history_future, c='red', ls='--', alpha=0.5)
+
+        perc_diff = (potential_price_actual-leave_price_actual)/leave_price_actual
+        perc_diff_worst = (twohour_price_actual-leave_price_actual)/leave_price_actual
+
+        if save:
+            plt.legend(frameon=False)
+            pdf.savefig()
+            # plt.show()
+
+        if return_stats:
+            return chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst
+
+
+    #------------- plot survey -------------#
+    plt.clf(); plt.cla()
+    history_comp = history_close[idx:idx+len(sample_close)]
+    chisq, in_sample, in_history, min_hist, norm_hist = compare_sample_history(sample_close, history_comp, show=False)
+    plt.plot(in_sample, c='blue', label='sample')
+    for idx in list(chisq_dict.keys()):
+        
+        plot_best_fits_singleplot(idx, future_time_frac=1.0, return_stats=False, save=False)
+
+
+    plt.legend()
+    plt.title("Behavior summary")
+    pdf.savefig()
+    plt.clf(); plt.cla()
 
     #------------- plot maximum potential -------------#
     estimate_returns = np.median(good_perc_diffs)
@@ -306,22 +381,37 @@ def executive_alpha(ticker):
 
 
     #------------- decision making -------------# 
-    BUY = True
-    if estimate_returns < 0.005:
-        BUY = False
+    if decide:
+        BUY = True
+        # if estimate_returns < 0.01:
+        #     BUY = False
 
-    if estimate_returns - np.std(good_perc_diffs) < 0.001:
-        BUY = False
+        # if estimate_returns - np.std(good_perc_diffs) < 0.004:
+        #     BUY = False
 
-    if estimate_returns_worst < -0.005:
-        BUY = False
+        # if estimate_returns_worst < -0.00:
+        #     BUY = False
 
-    if estimate_returns_worst - np.std(good_perc_diff_worsts) < -0.01:
-        BUY = False
+        # if estimate_returns_worst - np.std(good_perc_diff_worsts) < -0.008:
+        #     BUY = False
+
+        if projected_outcome < 0.008:
+            BUY = False
+
+        if projected_outcome - np.std(projected_outcomes) < -0.01:
+            BUY = False
+
+        if not BUY:
+            return {'buy':False}
+
+        if BUY:
+            return {'buy':True, 'stop-profit':0.008 , 'stop-loss':-0.02}
 
 
-    if not BUY:
-        return {'buy':False}
+def main():
 
-    if BUY:
-        return {'buy':True, 'stop-profit':0.008, 'stop-loss':estimate_returns_worst - 2*np.std(good_perc_diff_worsts)}
+    print(executive_alpha('XMR', decide=True))
+
+
+if __name__ == '__main__':
+    main()

@@ -13,41 +13,31 @@ import os
 import alpha 
 
 import alpaca_trade_api as tradeapi
-alpaca_api_key = 'AKO5B5A1S2E3DSGPKUTZ'
-alpaca_api_secret = 'v7tg8zmIN4gtRr5DtD4s77JSw495m2tHxUGec7Ga'
 
-api = tradeapi.REST(alpaca_api_key, alpaca_api_secret, api_version='v2')
-account = api.get_account()
-print(account)
-
-if float(account.cash) < 100:
-    print("Too little cash!")
-    sys.exit(0)
-
-try:
-    previous_order_value = float(api.get_activities()[0].price)*float(api.get_activities()[0].qty)
-except AttributeError:
-    previous_order_value = 100 
-if previous_order_value < 100.:
-    previous_order_value = 100.
-
+previous_order_value = 30
 print ("[{0}][previous_order_value: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), previous_order_value))
 
 coins = [
-"BATUSD",
-# "BTCUSD",
-# "BCHUSD",
-"LINKUSD",
-# "DAIUSD",
-"DOGEUSD" ,
-# "ETHUSD",
-"LTCUSD",
-"MKRUSD",
-"MATICUSD",
-"SOLUSD",
-"TRXUSD",
-"UNIUSD",
+"BAT",
+# "BTC",
+# "BCH",
+"LINK",
+# "DAI",
+"DOGE" ,
+# "ETH",
+"LTC",
+"MATIC",
+"SOL",
+"TRX",
+"UNI",
 ]
+
+
+with open("Coins.txt", "r") as cf:
+    lines = cf.readlines()
+
+coins = [line.replace("\n", "") for line in lines]
+print(coins)
 
 
 
@@ -79,9 +69,15 @@ def main():
     COIN_TO_BUY = None
     rec = None
 
-    for coin in coins:
+    for c, coin in enumerate(coins):
+
+        if c%30 == 0:
+            time.sleep(30)
         print(f"Coin: {coin}")
-        recommendation = get_recommendation(coin.split('USD')[0])
+        try:
+            recommendation = get_recommendation(coin.split('USD')[0])
+        except:
+            time.sleep(30)
         print(f"Recommendation for {coin}: {recommendation}")
         
         
@@ -93,7 +89,6 @@ def main():
 
     if COIN_TO_BUY is not None:
         print(f"Buying {COIN_TO_BUY}")
-        print(f"python -c {COIN_TO_BUY} -s {100} -g 0.01")
         os.system(f"python c3po.py -c {COIN_TO_BUY} -s {previous_order_value} -g {rec['stop-profit']} -l {rec['stop-loss']}")
 
 

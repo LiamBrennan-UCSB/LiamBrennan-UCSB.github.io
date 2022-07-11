@@ -30,11 +30,13 @@ async def buy(coin, quantity):
 
     keys = info[0]['result']
     symbols = []
+    print(coin)
     for key in keys:
-        print(key['symbol'])
-        if key['symbol'] == coin: 
+
+        if key['symbol'] == coin+"USDT": 
             print(key)
-            coin_price = key['last_price']
+            coin_price = key['ask_price']
+            break
         symbols.append(key['symbol'])
 
 
@@ -42,13 +44,23 @@ async def buy(coin, quantity):
 
 
     # create limit order
-    symbol = coin.split('USD')[0]+'/USDT'
-    t = 'limit'
-    side = 'buy'
-    amount = quantity
-    price = float(coin_price)
-    create_order = await exchange.create_order(symbol, t, side, amount, 1.1*price)
-    print('Create order id:', create_order['id'])
+    try:
+        symbol = coin.split('USD')[0]+'/USDT'
+        t = 'limit'
+        side = 'buy'
+        amount = quantity
+        price = float(coin_price)
+        create_order = await exchange.create_order(symbol, t, side, amount, 1.01*price)
+        print('Create order id:', create_order['id'])
+
+    except ccxt.base.errors.BadSymbol:
+        symbol = coin.split('USD')[0]+'USDT'
+        t = 'limit'
+        side = 'buy'
+        amount = quantity
+        price = float(coin_price)
+        create_order = await exchange.create_order(symbol, t, side, amount, 1.01*price)
+        print('Create order id:', create_order['id'])
 
 
 async def sell(coin, quantity):
@@ -57,10 +69,11 @@ async def sell(coin, quantity):
     keys = info[0]['result']
     symbols = []
     for key in keys:
-        print(key['symbol'])
-        if key['symbol'] == coin: 
+        if key['symbol'] == coin+"USDT": 
             print(key)
-            coin_price = key['last_price']
+            coin_price = key['bid_price']
+            coin_price = key['ask_price']
+            break
         symbols.append(key['symbol'])
 
 
@@ -68,10 +81,40 @@ async def sell(coin, quantity):
 
 
     # create limit order
-    symbol = coin.split('USD')[0]+'/USDT'
-    t = 'limit'
-    side = 'sell'
-    amount = quantity
-    price = float(coin_price)
-    create_order = await exchange.create_order(symbol, t, side, amount, 0.99*price)
-    print('Create order id:', create_order['id'])
+    try:
+        symbol = coin.split('USD')[0]+'/USDT'
+        t = 'limit'
+        side = 'sell'
+        amount = quantity
+        price = float(coin_price)
+        create_order = await exchange.create_order(symbol, t, side, amount, 0.99*price)
+        print('Create order id:', create_order['id'])
+
+    except ccxt.base.errors.BadSymbol:
+        symbol = coin.split('USD')[0]+'USDT'
+        t = 'limit'
+        side = 'sell'
+        amount = quantity
+        price = float(coin_price)
+        create_order = await exchange.create_order(symbol, t, side, amount, 0.99*price)
+        print('Create order id:', create_order['id'])
+
+
+async def get_price(coin):
+
+    info = client.Market.Market_symbolInfo().result()
+
+    keys = info[0]['result']
+    symbols = []
+    for key in keys:
+        
+        if key['symbol'] == coin+"USDT": 
+            # print(key)
+            coin_price = key['last_price']
+        elif key['symbol'] == coin+"/USDT": 
+            # print(key)
+            coin_price = key['last_price']
+        symbols.append(key['symbol'])
+
+
+    return float(coin_price)
