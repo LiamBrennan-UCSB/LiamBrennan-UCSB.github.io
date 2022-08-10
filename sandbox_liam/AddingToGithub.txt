@@ -1,0 +1,6 @@
+How to add code to the github
+
+git add (file name)
+git status #Checks to see if it was added correctly
+git commit -m "comment"
+git push
