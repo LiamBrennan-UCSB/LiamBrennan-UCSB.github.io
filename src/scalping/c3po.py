@@ -126,10 +126,12 @@ async def execute():
 
     #------------- set up binance -------------#
 
+    DEFAULT_GAIN = GAIN
 
     while 1:
+        time.sleep(4)
         try:
-            current_price = await bbs.get_price(COIN)
+            current_price = await bbs.get_price(COIN, p='ask_price')
             current_price = float(current_price)
 
 
@@ -137,8 +139,20 @@ async def execute():
 
             print(f"Percent above: {(current_price-BUY_PRICE)/BUY_PRICE}")
 
-            if current_price > (1.+GAIN) * BUY_PRICE or current_price < (1.+LOSS) * BUY_PRICE or time.time() - buy_time > 21600:
+            # if current_price > (1.+GAIN) * BUY_PRICE or current_price < (1.+LOSS) * BUY_PRICE or time.time() - buy_time > 21600:
+            if current_price > (1.+GAIN)*BUY_PRICE:
 
+                LOSS = GAIN - 0.001
+                # if LOSS < DEFAULT_GAIN:
+                #     LOSS = -0.005
+                GAIN += 0.002
+
+
+                print(f"New gain is {GAIN}.")
+                print(f"New loss is {LOSS}.")
+
+            if current_price < (1.+LOSS) * BUY_PRICE:
+                
                 quantity = await bbs.get_allowable_sell_amount(COIN, quantity, current_price)
 
                 await sell(quantity)

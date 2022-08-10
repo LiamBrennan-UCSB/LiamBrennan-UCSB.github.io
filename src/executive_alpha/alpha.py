@@ -17,6 +17,14 @@ from scipy import interpolate
 from scipy.stats import chisquare
 import time
 
+from itertools import cycle
+from shutil import get_terminal_size
+from threading import Thread
+from time import sleep
+
+import bybit_buy_sell as bbs
+
+
 from matplotlib.backends.backend_pdf import PdfPages
 
 ## matplotlib settings ##
@@ -57,6 +65,49 @@ class bcolors:
     def failure(message):
         print (bcolors.FAIL + "[" + message + "]" + bcolors.ENDC)
 
+
+class Loader:
+    def __init__(self, desc="Loading...", end="Done!", timeout=0.1):
+        """
+        A loader-like context manager
+
+        Args:
+            desc (str, optional): The loader's description. Defaults to "Loading...".
+            end (str, optional): Final print. Defaults to "Done!".
+            timeout (float, optional): Sleep time between prints. Defaults to 0.1.
+        """
+        self.desc = desc
+        self.end = end
+        self.timeout = timeout
+
+        self._thread = Thread(target=self._animate, daemon=True)
+        # self.steps = ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"]
+        self.steps = ["[■□□□□□□□□□]","[■■□□□□□□□□]", "[■■■□□□□□□□]", "[■■■■□□□□□□]", "[■■■■■□□□□□]", "[■■■■■■□□□□]", "[■■■■■■■□□□]", "[■■■■■■■■□□]", "[■■■■■■■■■□]", "[■■■■■■■■■■]"]
+        self.done = False
+
+    def start(self):
+        self._thread.start()
+        return self
+
+    def _animate(self):
+        for c in cycle(self.steps):
+            if self.done:
+                break
+            print(f"\r{self.desc} {c}", flush=True, end="")
+            sleep(self.timeout)
+
+    def __enter__(self):
+        self.start()
+
+    def stop(self):
+        self.done = True
+        cols = get_terminal_size((80, 20)).columns
+        # print("\r" + " " * cols, end="", flush=True)
+        print(f"\n{self.end}")
+
+    def __exit__(self, exc_type, exc_value, tb):
+        # handle exceptions with those variables ^
+        self.stop()
 
 
 #------------- script settings -------------#
@@ -146,9 +197,9 @@ def executive_alpha(ticker, decide=True):
 
         ## calculate chi sq ##
         chisq = chisquare(history, f_exp=sample)[0]
-        print ("[{0}][chisq: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), chisq))
+        # print ("[{0}][chisq: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), chisq))
 
-        bcolors.success(f"Completed in {time.time()-t0} seconds.")
+        # bcolors.success(f"Completed in {time.time()-t0} seconds.")
 
         if show:
             plt.plot(sample, c='blue', label='sample')
@@ -167,6 +218,8 @@ def executive_alpha(ticker, decide=True):
 
 
     #------------- iterate over every subset -------------#
+    # print("Checking every subset for similarity.")
+    loader = Loader("Checking every subset for similarity.", "->Checked.", 0.05).start()
     chisq_dict = {}
     for idx in range(0, len(history_close)-len(sample_close)):
 
@@ -181,12 +234,29 @@ def executive_alpha(ticker, decide=True):
 
         if len(chisq_dict.keys()) > 20:
             chisq_dict = remaining(chisq_dict)
+    loader.stop()
 
 
-    print ("[{0}][chisq_dict: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), chisq_dict))
+    # top_chisq_dict = {}
+    # for idx in range(0, len(history_close)-len(sample_close)):
+
+    #     ## splice history comp ##
+    #     history_comp = history_close[idx:idx+len(sample_close)]
+
+    #     ## check chisq ##
+    #     chisq = compare_sample_history(sample_close, history_comp, show=False, return_interp=False)
+
+    #     if chisq > 1:
+    #         top_chisq_dict[idx] = chisq
+
+    #     if len(top_chisq_dict.keys()) > 3:
+    #         top_chisq_dict = remaining(top_chisq_dict)
 
 
-    def plot_best_fits(bf_idx, future_time_frac=1.0, return_stats=True, show=True):
+    # print ("[{0}][chisq_dict: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), chisq_dict))
+
+
+    def plot_best_fits(bf_idx, future_time_frac=1.0, return_stats=True, show=True, title_add=""):
 
         plt.clf(); plt.cla()
 
@@ -202,20 +272,20 @@ def executive_alpha(ticker, decide=True):
         plt.text(0.05, in_history[-1]*0.91, "Leave price", color='black')
 
         leave_price_actual = in_history[-1]*norm_hist + min_hist
-        print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
+        # print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
 
         ## plot future behavior ##
         history_future = history_close[bf_idx+int(future_time_frac*len(sample_close)):bf_idx+2*int(future_time_frac*len(sample_close))]
         history_future = (history_future-min_hist)/norm_hist + 0.001\
 
         potential_price_actual = np.max(history_future)*norm_hist + min_hist
-        print ("[{0}][potential_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), potential_price_actual))
+        # print ("[{0}][potential_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), potential_price_actual))
 
         plt.axhline(np.max(history_future), c='green', alpha=0.5, ls='--')
         plt.text(0.05, np.max(history_future)*1.005, "Potential price", color='green')
 
         twohour_price_actual = history_future[-1]*norm_hist + min_hist
-        print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
+        # print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
 
         plt.axhline(history_future[-1], c='red', alpha=0.5, ls='--')
         plt.text(0.05, np.max(history_future)*1.005, "Potential price", color='red')
@@ -227,7 +297,7 @@ def executive_alpha(ticker, decide=True):
 
         if show:
             plt.legend(frameon=False)
-            plt.title(r"$\chi^2\approx$"+str(round(chisq, 3))+f", pdiff: {round(perc_diff, 5)}")
+            plt.title(title_add+r"$\chi^2\approx$"+str(round(chisq, 3))+f", pdiff: {round(perc_diff, 5)}")
             pdf.savefig()
             # plt.show()
 
@@ -236,10 +306,32 @@ def executive_alpha(ticker, decide=True):
 
 
 
+    # #------------- plot best fits sections -------------#
+    # plt.clf(); plt.cla()
+    # good_chisqs, good_perc_diffs, good_perc_diff_worsts = [], [], []
+    # projected_outcomes = []
+    # prob_make = 0
+    # for idx in list(top_chisq_dict.keys()):
+
+    #     chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst = plot_best_fits(idx, return_stats=True, show=True, title_add="BEST FIT")
+
+    #     good_chisqs.append(chisq)
+    #     good_perc_diffs.append(perc_diff)
+    #     good_perc_diff_worsts.append(perc_diff_worst)
+
+    #     if perc_diff > 0.003:
+    #         projected_outcomes.append(perc_diff)
+    #         prob_make+=1
+    #     else:
+    #         projected_outcomes.append(perc_diff_worst)
+
+
     #------------- plot best fits sections -------------#
+    loader = Loader("Checking how many subsets rose 0.45%.", "->Checked.", 0.05).start()
     plt.clf(); plt.cla()
     good_chisqs, good_perc_diffs, good_perc_diff_worsts = [], [], []
     projected_outcomes = []
+    prob_make = 0
     for idx in list(chisq_dict.keys()):
 
         chisq, leave_price_actual, potential_price_actual, perc_diff, perc_diff_worst = plot_best_fits(idx, return_stats=True, show=True)
@@ -248,10 +340,13 @@ def executive_alpha(ticker, decide=True):
         good_perc_diffs.append(perc_diff)
         good_perc_diff_worsts.append(perc_diff_worst)
 
-        if perc_diff > 0.005:
+        if perc_diff > 0.0035:
             projected_outcomes.append(perc_diff)
+            prob_make+=1
         else:
             projected_outcomes.append(perc_diff_worst)
+
+    loader.stop()
 
     #------------- plot histogram of projected outcome -------------#
 
@@ -264,8 +359,16 @@ def executive_alpha(ticker, decide=True):
     plt.title(f"Projected outcomes; median={np.median(projected_outcomes)}")
     pdf.savefig()    
 
-
+    prob_make /= float(len(projected_outcomes))
+    print("=================================================")
+    print(f"-> Coin: {TICKER} <-")
+    print(f"-> Probability of making money: {prob_make*100}% <-")
     projected_outcome = np.median(projected_outcomes)
+    print(f"-> Projected outcome: {projected_outcome}% gain/loss. <-")
+    print("=================================================")
+
+    # bcolors.warning("[{0}][prob_make: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), prob_make))
+    # bcolors.warning ("[{0}][projected_outcome: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), projected_outcome))
 
     def plot_best_fits_singleplot(bf_idx, future_time_frac=1.0, return_stats=False, save=True):
 
@@ -281,17 +384,17 @@ def executive_alpha(ticker, decide=True):
 
 
         leave_price_actual = in_history[-1]*norm_hist + min_hist
-        print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
+        # print ("[{0}][leave_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), leave_price_actual))
 
         ## plot future behavior ##
         history_future = history_close[bf_idx+int(future_time_frac*len(sample_close)):bf_idx+2*int(future_time_frac*len(sample_close))]
         history_future = (history_future-min_hist)/norm_hist + 0.001
 
         potential_price_actual = np.max(history_future)*norm_hist + min_hist
-        print ("[{0}][potential_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), potential_price_actual))
+        # print ("[{0}][potential_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), potential_price_actual))
 
         twohour_price_actual = history_future[-1]*norm_hist + min_hist
-        print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
+        # print ("[{0}][twohour_price_actual: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), twohour_price_actual))
 
 
         plt.plot(np.linspace(len(in_history), len(in_history)+5*len(history_future), len(history_future)), history_future, c='red', ls='--', alpha=0.5)
@@ -326,7 +429,7 @@ def executive_alpha(ticker, decide=True):
     #------------- plot maximum potential -------------#
     estimate_returns = np.median(good_perc_diffs)
 
-    print ("[{0}][estimate_returns: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), estimate_returns))
+    # print ("[{0}][estimate_returns: {1}]".format(datetime.datetime.utcnow().strftime("%H:%M:%S"), estimate_returns))
 
 
     plt.clf(); plt.cla()
@@ -384,6 +487,10 @@ def executive_alpha(ticker, decide=True):
     #------------- decision making -------------# 
     if decide:
         BUY = True
+
+
+        # if sample_close[-1] > 1.5:
+        #     BUY = False
         # if estimate_returns < 0.01:
         #     BUY = False
 
@@ -396,22 +503,26 @@ def executive_alpha(ticker, decide=True):
         # if estimate_returns_worst - np.std(good_perc_diff_worsts) < -0.008:
         #     BUY = False
 
-        if projected_outcome < 0.008:
-            BUY = False
+        # if projected_outcome < 0.008:
+        #     BUY = False
 
-        if projected_outcome - np.std(projected_outcomes) < -0.011:
+        # if projected_outcome - np.std(projected_outcomes) < -0.005:
+        #     BUY = False
+
+        if prob_make < 0.80:
             BUY = False
 
         if not BUY:
             return {'buy':False}
 
         if BUY:
-            return {'buy':True, 'stop-profit':0.008 , 'stop-loss':-0.02}
+            return {'buy':True, 'stop-profit':0.005 , 'stop-loss':-0.011, 'prob':prob_make}
+            # return {'buy':True, 'stop-profit':0.008, 'stop-loss':estimate_returns_worst - 2*np.std(good_perc_diff_worsts)}
 
 
 def main():
 
-    print(executive_alpha('ENS', decide=True))
+    print(executive_alpha('BTC', decide=True))
 
 
 if __name__ == '__main__':

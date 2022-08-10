@@ -121,7 +121,7 @@ async def sell(coin, quantity):
             print('Create order id:', create_order['id'])
 
 
-async def get_price(coin, return_symbol=False):
+async def get_price(coin, return_symbol=False, p='last_price'):
 
     info = client.Market.Market_symbolInfo().result()
 
@@ -131,22 +131,22 @@ async def get_price(coin, return_symbol=False):
     for key in keys:
         if key['symbol'] == coin: 
             # print(key)
-            coin_price = key['last_price']
+            coin_price = key[p]
             symbol = coin
 
         elif key['symbol'] == coin+"USDT": 
             # print(key)
-            coin_price = key['last_price']
+            coin_price = key[p]
             symbol = coin+"USDT"
         elif key['symbol'] == coin+"/USDT": 
             # print(key)
-            coin_price = key['last_price']
+            coin_price = key[p]
             symbol = coin+"/USDT"
         elif key['symbol'] == coin[1:]+"/USDT":
-            coin_price = key['last_price']
+            coin_price = key[p]
             symbol = coin[1:]+"/USDT"
         elif coin in key['symbol']:
-            coin_price = key['last_price']
+            coin_price = key[p]
             symbol = key['symbol']
         symbols.append(key['symbol'])
 
@@ -168,6 +168,21 @@ async def get_order(coin):
     await exchange.close()
 
     return price, amount
+
+
+async def get_previous_order_value():
+
+    trades = await exchange.fetchClosedOrders()
+    order = trades[-1]
+
+    print(order)
+
+    price = float(order['info']['cummulativeQuoteQty'])
+
+    await exchange.close()
+
+    return price
+
 
 
 async def get_allowable_sell_amount(coin, start_qty, price):
@@ -192,6 +207,29 @@ async def get_allowable_sell_amount(coin, start_qty, price):
             print("Didn't work :( trying a smaller sell amount.")
 
 
+async def print_info(coin):
+
+    info = client.Market.Market_symbolInfo().result()
+
+    keys = info[0]['result']
+    symbols = []
+    for key in keys:
+        if key['symbol'] == coin: 
+            print(key)
+            print(f"24 hour high: {key['high_price_24h']}")
+            print(f"Upper bound: {(float(key['low_price_24h']) + (float(key['high_price_24h']) + float(key['low_price_24h']))/2.)/2.}")
+            print(f"CURRENT PRICE: {key['last_price']}")
+            print(f"24 hour low: {key['low_price_24h']}")
+            print(f"Change (1h): {float(key['price_1h_pcnt'])*100}%")
+            print(f"Change (24h): {float(key['price_24h_pcnt'])*100}%")
+            print("===="*10)
+            print(f"Current price lower than upper bound? {float(key['last_price']) < (float(key['low_price_24h']) + (float(key['high_price_24h']) + float(key['low_price_24h']))/2.)/2.}")
+            print(f"Hour change greater than 0.2%: {float(key['price_1h_pcnt']) > 0.002}")
+            print(f"Day change greater than 1%: {float(key['price_24h_pcnt']) > 0.01}")
+            coin_price = key['bid_price']
+            coin_price = key['ask_price']
+            break
+        symbols.append(key['symbol'])
 
 async def main():
 
@@ -199,7 +237,8 @@ async def main():
     # await exchange.close()
     # print(p, a)
 
-    await get_allowable_sell_amount('AGLDUSDT', 57.2603, 0.413)
+    # await get_allowable_sell_amount('AGLDUSDT', 57.2603, 0.413)
+    await print_info(sys.argv[1])
 
 if __name__ == '__main__':
     asyncio.run(main())
