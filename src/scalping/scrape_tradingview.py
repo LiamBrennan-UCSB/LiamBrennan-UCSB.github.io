@@ -2,8 +2,11 @@ import requests
 import urllib
 import time
 from tqdm import tqdm
+import asyncio
 
 from tradingview_ta import TA_Handler, Interval, Exchange
+
+import bybit_buy_sell as bbs
 
 intervals = [Interval.INTERVAL_15_MINUTES, 
     Interval.INTERVAL_30_MINUTES, 
@@ -12,7 +15,7 @@ intervals = [Interval.INTERVAL_15_MINUTES,
     Interval.INTERVAL_4_HOURS,
     Interval.INTERVAL_1_DAY,]
 
-def get_info(coin):
+async def get_info(coin):
 
     buys, sells, neutrals = 0, 0, 0
 
@@ -54,7 +57,7 @@ def get_info(coin):
         buy_now = True
 
 
-
+    not_exploded = await bbs.check_coin_lower_part_day(coin.split('USDT')[0])
 
     if buys > (sells + neutrals) and buy_now:
 
@@ -64,7 +67,7 @@ def get_info(coin):
         return False, 0
 
 
-def scan_market():
+async def scan_market():
 
     good_coin_list = ['IMX', 'ZEN', 'SC', 'STX', 'BICO', '1INCH', 'KLAY', 'SPELL', 'AR', 'ICX', 'CELO', 'WAVES', 'RVN', 'LOOKS', 'JASMY', 'HNT', 'ZIL', 'SUN', 'JST', 'PAXG', 'KDA', 'APE', 'GMT', 'HOT', 'DGB', 'ZRX', 'GLMR', 'SCRT', 'MINA', 'BOBA', 'ACH', 'GAL', 'OP', 'BEL', 'EOS', 'XRP', 'DOT', 'BIT', 'ADA', 'SOL', 'MANA', 'LTC', 'BTC', 'ETH', 'EOS', 'XRP', 'BCH', 'XTZ', 'LINK', 'ADA', 'UNI', 'XEM', 'SUSHI', 'AAVE', 'DOGE', 'MATIC', 'ETC', 'BNB', 'FIL', 'XLM', 'TRX', 'THETA', 'AXS', 'SAND', 'KSM', 'ATOM', 'CHZ', 'CRV', 'ENJ', 'YFI', 'ICP', 'FTM', 'ALGO', 'DYDX', 'NEAR', 'SRM', 'OMG', 'FTT', 'BIT', 'GALA', 'HBAR', 'ONE', 'C98', 'AGLD', 'MKR', 'EGLD', 'REN', 'TLM', 'RUNE', 'WOO', 'LRC', 'ENS', 'BAT', 'SNX', 'SLP', 'ANKR', 'QTUM']
 
@@ -75,7 +78,7 @@ def scan_market():
     for coin in tqdm(good_coin_list):
 
         try:
-            rec, buys = get_info(coin+"USDT")
+            rec, buys = await get_info(coin+"USDT")
         except:
             print(f"Problem with {coin}")
             coins_with_issues += 1
@@ -93,10 +96,10 @@ def scan_market():
 
 
 
-def main():
+async def main():
 
-    print(scan_market())
+    print(await scan_market())
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

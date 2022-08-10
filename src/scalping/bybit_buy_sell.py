@@ -231,6 +231,28 @@ async def print_info(coin):
             break
         symbols.append(key['symbol'])
 
+
+async def check_coin_lower_part_day(coin):
+
+    coin = coin+'USDT'
+
+    info = client.Market.Market_symbolInfo().result()
+    keys = info[0]['result']
+    symbols = []
+    for key in keys:
+        if key['symbol'] == coin: 
+            price = float(key['last_price'])
+            symbol = key['symbol'].split('USD')[0]
+
+            high = float(key['high_price_24h'])
+            low = float(key['low_price_24h'])
+
+            pct24 = float(key['price_24h_pcnt'])
+            pct1 = float(key['price_1h_pcnt'])
+
+            # return price > (low + (high + low)/2.)/2.:
+            return price < (high + low)/2.
+
 async def main():
 
     # p, a = await get_order('ENSUSDT')
