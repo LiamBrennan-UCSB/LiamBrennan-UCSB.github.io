@@ -1,4 +1,4 @@
-title: First Post on My Sweet New Blog
+<!-- title: First Post on My Sweet New Blog
 date: 12/25/2022
 author: Liam
 
@@ -6,4 +6,11 @@ author: Liam
 
 This is my first post on my new blog. While not super informative it
 should convey my sense of excitement and eagerness to engage with you,
-the reader!
+the reader! -->
+
+
+This is a test
+
+This is the start of our website
+
+Crypto on the right
