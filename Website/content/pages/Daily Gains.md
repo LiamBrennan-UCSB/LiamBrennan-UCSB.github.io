@@ -1,4 +1,4 @@
-title: Crypto
+title: Daily Gains
 
 Our current daily earnings chart
 
